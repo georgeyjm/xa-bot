@@ -1,3 +1,4 @@
+from distutils.command.upload import upload
 import os
 import re
 import json
@@ -47,17 +48,22 @@ def insert_bitable_entry(app_token, table_id, entry: dict):
     return req.json()
 
 
-def upload_file(filepath, filename, parent_node):
+def upload_remote_file(remote_url, parent_node, filename=None):
     url = 'https://open.feishu.cn/open-apis/drive/v1/medias/upload_all'
-    assert os.path.isfile(filepath)
+    if filename is None:
+        filename = remote_url.rsplit('/', 1)[1]
+    file_req = requests.get(remote_url, headers=headers)
+    file_raw = file_req.content
     body = {
         'file_name': filename,
         'parent_node': parent_node,
         'parent_type': 'bitable_file',
-        'size': os.path.getsize(filepath),
+        'size': len(file_raw),
     }
-    files = {'file': open(filepath, 'rb')}
-    req = requests.post(url, headers=headers, json=body, files=files)
+    files = {'file': file_raw}
+    upload_headers = headers.copy()
+    del upload_headers['Content-Type']
+    req = requests.post(url, headers=upload_headers, data=body, files=files)
     return req.json()
 
 
@@ -75,18 +81,21 @@ sheet_id = get_spreadsheet_metainfo(SPREADSHEET_TOKEN)['sheets'][0]['sheetId']
 values = get_spreadsheet_values(SPREADSHEET_TOKEN, sheet_id, 'F:Z')
 
 for row in values[1:]: # Skip header row
+    remarks = []
     course_preferences = ''
     if 'TechX' in row[8]:
         course_preferences += row[10]
+        is_first_preference = True
     elif 'TechX' in row[9]: # Disregard same track preference (maybe needs to change later)
         course_preferences += row[11]
+        is_first_preference = False
+        remarks.append('首选：' + row[8].split('（')[0])
     else:
         continue
 
     name, email, wechat, school, year, major = row[1:7]
     if email in current_emails:
         continue
-    remarks = []
     available_cities = []
     # if row[18].startswith('其他') and (remark := re.match(r'其他(?:\((.*)\))?')).groups()[0] is not None:
     #     remarks.append(remark)
@@ -96,6 +105,14 @@ for row in values[1:]: # Skip header row
         else:
             available_cities.append(re.match(r'(.+)?场（.+）', item).groups()[0])
 
+    resume_files = []
+    for url in row[16].split('\n'):
+        url = url.strip()
+        if not url.startswith('http'):
+            continue
+        upload_resp = upload_remote_file(url, BITABLE_APP_TOKEN)
+        resume_files.append(upload_resp['data'])
+
     entry = {
         '姓名': name,
         '邮箱地址': email,
@@ -104,8 +121,8 @@ for row in values[1:]: # Skip header row
         '年级': year,
         '专业': major,
         '意向课程': course_preferences,
-        '招募阶段': '已申请',
-        '简历': [],
+        '招募阶段': '已申请' if is_first_preference else '首选志愿中',
+        '简历': resume_files,
         '链接': '',
         '有空场次': available_cities,
         'Why AL?': row[12],

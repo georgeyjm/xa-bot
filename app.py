@@ -22,7 +22,7 @@ def main_handle():
 
     if data['type'] == 'url_verification':
         challenge = data['challenge']
-        return jsonify(challenge=challenge)
+        return json.dumps({'challenge': challenge})
 
 
 if __name__ == '__main__':

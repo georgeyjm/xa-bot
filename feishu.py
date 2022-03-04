@@ -1,5 +1,6 @@
 import os
 import re
+import json
 
 import requests
 from dotenv import load_dotenv
@@ -10,6 +11,7 @@ headers = {'Content-Type': 'application/json; charset=utf-8'}
 SPREADSHEET_TOKEN = 'shtcnafMpuvPzIg2LaRXj36PLU2'
 BITABLE_APP_TOKEN = 'bascnHLJi8ZpDspC2ooYak3rOgG'
 BITABLE_TABLE_ID = 'tblgQXT5MM8mXfU3'
+GROUPCHAT_ID = 'oc_7b272ccc49167d6eb1e1df1fd66cdca1'
 
 load_dotenv(dotenv_path='bot.env')
 
@@ -20,6 +22,24 @@ def get_jwt():
     req = requests.post(url, json=body)
     tenant_access_token = req.json()['tenant_access_token']
     headers['Authorization'] = f'Bearer {tenant_access_token}'
+
+
+def get_chats():
+    url = 'https://open.feishu.cn/open-apis/im/v1/chats'
+    req = requests.get(url, headers=headers)
+    return req.json()['data']
+
+
+def send_text_message(content):
+    url = 'https://open.feishu.cn/open-apis/im/v1/messages'
+    params = {'receive_id_type': 'chat_id'}
+    body = {
+        'receive_id': GROUPCHAT_ID,
+        'msg_type': 'text',
+        'content': json.dumps({'text': content}),
+    }
+    req = requests.post(url, params=params, headers=headers, json=body)
+    return req.json()
 
 
 def get_spreadsheet_metainfo(spreadsheet_token):
@@ -136,3 +156,4 @@ def update_bitable_from_spreadsheet():
             print(resp)
         else:
             print(f'记录了新申请者：{name}')
+            send_text_message(f'收到新的 TechX AL 申请者：{name}')

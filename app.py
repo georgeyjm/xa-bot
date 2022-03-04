@@ -15,7 +15,8 @@ app = Flask(__name__)
 
 @app.route('/')
 def main_handle():
-    encrypt = request.json.get('encrypt') or request.form.get('encrypt')
+    data = request.json or request.form
+    encrypt = data.get('encrypt')
     decrypt = decrypt_aes(os.getenv('EVENT_ENCRYPT_KEY'), encrypt)
     data = json.loads(decrypt)
 

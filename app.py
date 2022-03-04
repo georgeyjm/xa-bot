@@ -5,7 +5,7 @@ from flask import Flask, request, jsonify
 from dotenv import load_dotenv
 
 from utils import decrypt_aes
-from feishu import update_bitable_from_spreadsheet
+from feishu import update_bitable_from_spreadsheet, SPREADSHEET_TOKEN
 
 
 load_dotenv(dotenv_path='bot.env')
@@ -13,16 +13,28 @@ load_dotenv(dotenv_path='bot.env')
 app = Flask(__name__)
 
 
-@app.route('/')
+@app.route('/', methods=['GET', 'POST'])
 def main_handle():
     data = request.json or request.form
-    encrypt = data.get('encrypt')
-    decrypt = decrypt_aes(os.getenv('EVENT_ENCRYPT_KEY'), encrypt)
-    data = json.loads(decrypt)
+    print(data)
+    try:
+        encrypt = data['encrypt']
+        decrypt = decrypt_aes(os.getenv('EVENT_ENCRYPT_KEY'), encrypt)
+        data = json.loads(decrypt)
+    except Exception as e:
+        print('Encountered exception', e)
+        return jsonify({'msg': str(e)})
 
-    if data['type'] == 'url_verification':
+    if data.get('type') == 'url_verification':
         challenge = data['challenge']
-        return json.dumps({'challenge': challenge})
+        return jsonify({'challenge': challenge})
+    
+    if data['header'] != os.getenv('EVENT_VERIFICATION_TOKEN'):
+        return jsonify({'msg': 'Byebye'})
+    
+    if data['header']['event_type'] == 'drive.file.edit_v1':
+        if data['event']['file_token'] == SPREADSHEET_TOKEN:
+            update_bitable_from_spreadsheet()
 
 
 if __name__ == '__main__':

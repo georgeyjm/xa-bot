@@ -47,6 +47,20 @@ def insert_bitable_entry(app_token, table_id, entry: dict):
     return req.json()
 
 
+def upload_file(filepath, filename, parent_node):
+    url = 'https://open.feishu.cn/open-apis/drive/v1/medias/upload_all'
+    assert os.path.isfile(filepath)
+    body = {
+        'file_name': filename,
+        'parent_node': parent_node,
+        'parent_type': 'bitable_file',
+        'size': os.path.getsize(filepath),
+    }
+    files = {'file': open(filepath, 'rb')}
+    req = requests.post(url, headers=headers, json=body, files=files)
+    return req.json()
+
+
 load_dotenv(dotenv_path='bot.env')
 get_jwt()
 

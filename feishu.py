@@ -5,15 +5,12 @@ import json
 import requests
 from dotenv import load_dotenv
 
+from constants import SPREADSHEET_TOKEN, BITABLE_APP_TOKEN, BITABLE_TABLE_ID, GROUPCHAT_ID
 
-headers = {'Content-Type': 'application/json; charset=utf-8'}
-
-SPREADSHEET_TOKEN = 'shtcnafMpuvPzIg2LaRXj36PLU2'
-BITABLE_APP_TOKEN = 'bascnHLJi8ZpDspC2ooYak3rOgG'
-BITABLE_TABLE_ID = 'tblgQXT5MM8mXfU3'
-GROUPCHAT_ID = 'oc_7b272ccc49167d6eb1e1df1fd66cdca1'
 
 load_dotenv(dotenv_path='bot.env')
+
+headers = {'Content-Type': 'application/json; charset=utf-8'}
 
 
 def get_jwt():

@@ -5,7 +5,8 @@ from flask import Flask, request, jsonify
 from dotenv import load_dotenv
 
 from utils import decrypt_aes
-from feishu import update_bitable_from_spreadsheet, SPREADSHEET_TOKEN
+from feishu import update_bitable_from_spreadsheet
+from constants import SPREADSHEET_TOKEN
 
 
 load_dotenv(dotenv_path='bot.env')

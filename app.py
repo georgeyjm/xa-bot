@@ -4,8 +4,8 @@ import json
 from flask import Flask, request, jsonify
 from dotenv import load_dotenv
 
-from .utils import decrypt_aes
-from .feishu import update_bitable_from_spreadsheet
+from utils import decrypt_aes
+from feishu import update_bitable_from_spreadsheet
 
 
 load_dotenv(dotenv_path='bot.env')
@@ -22,3 +22,10 @@ def main_handle():
     if data['type'] == 'url_verification':
         challenge = data['challenge']
         return jsonify(challenge=challenge)
+
+
+if __name__ == '__main__':
+    host = os.getenv('HOST', '0.0.0.0')
+    port = int(os.getenv('PORT', 5000))
+
+    app.run(host=host, port=port, threaded=True, use_reloader=False)

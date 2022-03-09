@@ -1,8 +1,10 @@
 import os
 import json
+import atexit
 
-from flask import Flask, request, jsonify
 from dotenv import load_dotenv
+from flask import Flask, request, jsonify
+from flask_apscheduler import APScheduler
 
 from utils import decrypt_aes
 from feishu import update_bitable_from_spreadsheet
@@ -12,6 +14,13 @@ from constants import SPREADSHEET_TOKEN
 load_dotenv(dotenv_path='bot.env')
 
 app = Flask(__name__)
+
+scheduler = APScheduler()
+scheduler.api_enabled = True
+scheduler.init_app(app)
+scheduler.start()
+
+scheduler.add_job(id='check_for_update', func=update_bitable_from_spreadsheet, trigger='interval', hours=3)
 
 
 @app.route('/', methods=['GET', 'POST'])

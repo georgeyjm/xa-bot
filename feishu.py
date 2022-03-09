@@ -39,6 +39,15 @@ def send_text_message(content):
     return req.json()
 
 
+def subscribe_to_file():
+    url = f'https://open.feishu.cn/open-apis/drive/v1/files/{SPREADSHEET_TOKEN}/subscribe'
+    subscribe_headers = headers.copy()
+    subscribe_headers['Content-Type'] = 'application/x-www-form-urlencoded'
+    params = {'file_type': 'sheet'}
+    req = requests.post(url, params=params)
+    return req.json()['data']
+
+
 def get_spreadsheet_metainfo(spreadsheet_token):
     url = f'https://open.feishu.cn/open-apis/sheets/v2/spreadsheets/{SPREADSHEET_TOKEN}/metainfo'
     req = requests.get(url, headers=headers)

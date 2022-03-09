@@ -127,10 +127,6 @@ def generate_templated_message(name, courses, school, year, is_first_preference)
                 ],
                 [
                     {
-                        'tag': 'text',
-                        'text': '详情：'
-                    },
-                    {
                         'tag': 'a',
                         'href': 'https://techx.feishu.cn/base/bascnHLJi8ZpDspC2ooYak3rOgG?table=tblgQXT5MM8mXfU3&view=vew6Byn1ak',
                         'text': '进入表单查看'

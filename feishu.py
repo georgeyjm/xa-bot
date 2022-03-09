@@ -128,7 +128,7 @@ def generate_templated_message(name, courses, school, year, is_first_preference)
                 [
                     {
                         'tag': 'text',
-                        'text': '详情请'
+                        'text': '详情：'
                     },
                     {
                         'tag': 'a',

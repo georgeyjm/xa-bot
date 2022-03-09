@@ -93,6 +93,12 @@ def upload_remote_file(remote_url, parent_node, filename=None):
     return req.json()
 
 
+def enforce_plain_text(raw_text):
+    if not isinstance(raw_text, list):
+        return raw_text
+    return ''.join(map(lambda l: l.get('text', ''), raw_text))
+
+
 def update_bitable_from_spreadsheet():
     get_jwt()
 
@@ -107,6 +113,7 @@ def update_bitable_from_spreadsheet():
     values = get_spreadsheet_values(SPREADSHEET_TOKEN, sheet_id, 'F:Z')
 
     for row in values[1:]: # Skip header row
+        row = list(map(enforce_plain_text, row))
         remarks = []
         course_preferences = ''
         if 'TechX' in row[8]:
@@ -120,8 +127,6 @@ def update_bitable_from_spreadsheet():
             continue
 
         name, email, wechat, school, year, major = row[1:7]
-        if isinstance(email, list):
-            email = email[0].get('text', '')
         if email in current_emails:
             continue
         available_cities = []
@@ -134,7 +139,8 @@ def update_bitable_from_spreadsheet():
                 available_cities.append(re.match(r'(.+)?场（.+）', item).groups()[0])
 
         resume_files = []
-        for url in row[16].split('\n'):
+        urls = row[16].split('\n')
+        for url in urls:
             url = url.strip()
             if not url.startswith('http'):
                 continue
@@ -164,4 +170,7 @@ def update_bitable_from_spreadsheet():
             print(resp)
         else:
             print(f'记录了新申请者：{name}')
-            send_text_message(f'收到新的 TechX AL 申请者：{name}')
+            # send_text_message(f'收到新的 TechX AL 申请者：{name}')
+
+
+

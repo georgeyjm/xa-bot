@@ -28,13 +28,18 @@ def get_chats():
     return req.json()['data']
 
 
-def send_text_message(content):
+def send_message(content, msg_type='text'):
+    assert msg_type in ('text', 'post')
     url = 'https://open.feishu.cn/open-apis/im/v1/messages'
     params = {'receive_id_type': 'chat_id'}
+    if msg_type == 'text':
+        content = json.dumps({'text': content})
+    elif msg_type == 'post':
+        content = json.dumps(content)
     body = {
         'receive_id': GROUPCHAT_ID,
-        'msg_type': 'text',
-        'content': json.dumps({'text': content}),
+        'msg_type': msg_type,
+        'content': content,
     }
     req = requests.post(url, params=params, headers=headers, json=body)
     return req.json()
@@ -98,6 +103,42 @@ def enforce_plain_text(raw_text):
     if not isinstance(raw_text, list):
         return raw_text
     return ''.join(map(lambda l: l.get('text', ''), raw_text))
+
+
+def generate_templated_message(name, courses, school, year, is_first_preference):
+    title = '新的 TechX 学术领袖申请者'
+    if not is_first_preference:
+        title += '（非首选）'
+    return {
+        'zh_cn': {
+            'title': title,
+            'content': [
+                [
+                    {
+                        'tag': 'text',
+                        'text': f'名称：{name}（{school} {year}）'
+                    },
+                ],
+                [
+                    {
+                        'tag': 'text',
+                        'text': f'意向课程：{courses}'
+                    },
+                ],
+                [
+                    {
+                        'tag': 'text',
+                        'text': '详情请'
+                    },
+                    {
+                        'tag': 'a',
+                        'href': 'https://techx.feishu.cn/base/bascnHLJi8ZpDspC2ooYak3rOgG?table=tblgQXT5MM8mXfU3&view=vew6Byn1ak',
+                        'text': '进入表单查看'
+                    },
+                ],
+            ]
+        },
+    }
 
 
 def update_bitable_from_spreadsheet():
@@ -177,7 +218,6 @@ def update_bitable_from_spreadsheet():
             print(resp)
         else:
             print(f'记录了新申请者：{name}')
-            send_text_message(f'收到新的 TechX AL 申请者：{name}。')
-
-
-
+            # send_message(f'收到新的 TechX AL 申请者：{name}。')
+            msg = generate_templated_message(name, course_preferences, school, year, is_first_preference)
+            send_message(msg, msg_type='post')

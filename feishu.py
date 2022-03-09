@@ -120,6 +120,8 @@ def update_bitable_from_spreadsheet():
             continue
 
         name, email, wechat, school, year, major = row[1:7]
+        if isinstance(email, list):
+            email = email[0].get('text', '')
         if email in current_emails:
             continue
         available_cities = []

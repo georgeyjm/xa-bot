@@ -21,6 +21,7 @@ scheduler.init_app(app)
 scheduler.start()
 
 scheduler.add_job(id='check_for_update', func=update_bitable_from_spreadsheet, trigger='interval', hours=3)
+update_bitable_from_spreadsheet()
 
 
 @app.route('/', methods=['GET', 'POST'])

@@ -11,6 +11,7 @@ from constants import SPREADSHEET_TOKEN, BITABLE_APP_TOKEN, BITABLE_TABLE_ID, GR
 load_dotenv(dotenv_path='bot.env')
 
 headers = {'Content-Type': 'application/json; charset=utf-8'}
+RETRIES = 3
 
 
 def get_jwt():
@@ -144,7 +145,13 @@ def update_bitable_from_spreadsheet():
             url = url.strip()
             if not url.startswith('http'):
                 continue
-            upload_resp = upload_remote_file(url, BITABLE_APP_TOKEN)
+            for i in range(RETRIES):
+                upload_resp = upload_remote_file(url, BITABLE_APP_TOKEN)
+                if upload_resp['code'] == 0:
+                    break
+            else:
+                remarks.append('错误：简历上传失败')
+                break
             resume_files.append(upload_resp['data'])
 
         entry = {
@@ -170,7 +177,7 @@ def update_bitable_from_spreadsheet():
             print(resp)
         else:
             print(f'记录了新申请者：{name}')
-            # send_text_message(f'收到新的 TechX AL 申请者：{name}')
+            send_text_message(f'收到新的 TechX AL 申请者：{name}。')
 
 
 
